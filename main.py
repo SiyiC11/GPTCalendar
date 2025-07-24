@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 import json
 import base64
@@ -93,19 +93,20 @@ def update_event():
 # === 🔍 查詢事件（指定區間） ===
 @app.route("/query_events", methods=["GET"])
 def query_events():
-    start_str = request.args.get('start')  # YYYY-MM-DD
-    end_str = request.args.get('end')      # YYYY-MM-DD
+    start_str = request.args.get('start')
+    end_str = request.args.get('end')
     if not start_str or not end_str:
         return jsonify({'error': 'Missing start or end date'}), 400
 
     try:
-        start_dt = datetime.strptime(start_str, "%Y-%m-%d")
-        end_dt = datetime.strptime(end_str, "%Y-%m-%d") + timedelta(days=1)
+        start_dt = datetime.strptime(start_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        end_dt = datetime.strptime(end_str, "%Y-%m-%d").replace(tzinfo=timezone.utc) + timedelta(days=1)
+
         service = get_calendar_service()
         events_result = service.events().list(
             calendarId=calendar_id,
-            timeMin=start_dt.isoformat() + 'T00:00:00+10:00',
-            timeMax=end_dt.isoformat() + 'T00:00:00+10:00',
+            timeMin=start_dt.isoformat(),
+            timeMax=end_dt.isoformat(),
             singleEvents=True,
             orderBy='startTime'
         ).execute()
@@ -128,13 +129,14 @@ def analyze_events():
         return jsonify({"error": "Missing required parameters"}), 400
 
     try:
-        start_dt = datetime.strptime(start, "%Y-%m-%d")
-        end_dt = datetime.strptime(end, "%Y-%m-%d") + timedelta(days=1)
+        start_dt = datetime.strptime(start, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        end_dt = datetime.strptime(end, "%Y-%m-%d").replace(tzinfo=timezone.utc) + timedelta(days=1)
+
         service = get_calendar_service()
         events_result = service.events().list(
             calendarId=calendar_id,
-            timeMin=start_dt.isoformat() + 'T00:00:00+10:00',
-            timeMax=end_dt.isoformat() + 'T00:00:00+10:00',
+            timeMin=start_dt.isoformat(),
+            timeMax=end_dt.isoformat(),
             singleEvents=True,
             orderBy='startTime'
         ).execute()
@@ -143,16 +145,21 @@ def analyze_events():
         if keywords:
             events = [e for e in events if any(k.lower() in e.get('summary', '').lower() for k in keywords)]
 
+        def extract_date_str(e):
+            return (e.get('start', {}).get('dateTime') or e.get('start', {}).get('date', ''))[:10]
+
         if analysis_type == "event_count":
             return jsonify({"count": len(events)})
         elif analysis_type == "event_list":
             return jsonify({"events": events})
         elif analysis_type == "busiest_day":
-            counter = Counter(e['start']['dateTime'][:10] for e in events)
+            dates = [extract_date_str(e) for e in events if extract_date_str(e)]
+            counter = Counter(dates)
             busiest = counter.most_common(1)
             return jsonify({"busiest_day": busiest[0] if busiest else None})
         elif analysis_type == "emptiest_day":
-            counter = Counter(e['start']['dateTime'][:10] for e in events)
+            dates = [extract_date_str(e) for e in events if extract_date_str(e)]
+            counter = Counter(dates)
             all_days = [(start_dt + timedelta(days=i)).strftime("%Y-%m-%d") for i in range((end_dt - start_dt).days)]
             emptiest = min(all_days, key=lambda d: counter.get(d, 0))
             return jsonify({"emptiest_day": emptiest})
@@ -162,8 +169,8 @@ def analyze_events():
             return jsonify({"most_common_event": most[0] if most else None})
         elif analysis_type == "summary":
             total = len(events)
-            kinds = Counter(e.get("summary", "") for e in events)
-            return jsonify({"total": total, "breakdown": kinds})
+            breakdown = Counter(e.get("summary", "") for e in events)
+            return jsonify({"total": total, "breakdown": breakdown})
 
         return jsonify({"error": "Invalid analysis_type"}), 400
     except Exception as e:
