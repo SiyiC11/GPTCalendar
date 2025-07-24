@@ -1,10 +1,11 @@
 openapi: 3.1.0
 info:
   title: GPT Calendar API
-  description: A plugin that allows ChatGPT to create, query, update, delete, and analyze Google Calendar events via natural language.
+  description: A plugin that allows ChatGPT to create, query, update, delete, and analyze Google Calendar events.
   version: "1.0.0"
 servers:
   - url: https://gptcalendar.onrender.com
+
 paths:
   /create_event:
     post:
@@ -18,27 +19,8 @@ paths:
               $ref: '#/components/schemas/EventInput'
       responses:
         '200':
-          description: Successful creation
-  /query_events:
-    get:
-      summary: Query calendar events within a date range
-      operationId: queryEvents
-      parameters:
-        - name: start
-          in: query
-          required: true
-          schema:
-            type: string
-            example: "2025-07-22"
-        - name: end
-          in: query
-          required: true
-          schema:
-            type: string
-            example: "2025-07-28"
-      responses:
-        '200':
-          description: Successful query
+          description: Event successfully created
+
   /update_event:
     post:
       summary: Update a calendar event
@@ -51,7 +33,8 @@ paths:
               $ref: '#/components/schemas/EventUpdate'
       responses:
         '200':
-          description: Successful update
+          description: Event successfully updated
+
   /delete_event:
     post:
       summary: Delete a calendar event
@@ -67,24 +50,48 @@ paths:
                   type: string
       responses:
         '200':
-          description: Successful deletion
+          description: Event successfully deleted
+
+  /query_events:
+    get:
+      summary: Query calendar events within a date range
+      operationId: queryEvents
+      parameters:
+        - name: start
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "2025-07-24"
+        - name: end
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "2025-07-26"
+      responses:
+        '200':
+          description: Events retrieved successfully
+
   /analyze_events:
     post:
-      summary: Analyze calendar events within a date range
+      summary: Analyze calendar events
       operationId: analyzeEvents
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EventAnalysis'
+              $ref: '#/components/schemas/AnalysisInput'
       responses:
         '200':
-          description: Successful analysis
+          description: Analysis result returned
+
 components:
   schemas:
     EventInput:
       type: object
+      required: [summary, start, end, user_timezone]
       properties:
         summary:
           type: string
@@ -96,10 +103,14 @@ components:
         end:
           type: string
           format: date-time
-        timezone:
+        user_timezone:
           type: string
+        recurrence:
+          type: string
+
     EventUpdate:
       type: object
+      required: [event_id]
       properties:
         event_id:
           type: string
@@ -113,30 +124,25 @@ components:
         end:
           type: string
           format: date-time
-        timezone:
+        user_timezone:
           type: string
-    EventAnalysis:
+
+    AnalysisInput:
       type: object
+      required: [analysis_type, date_range]
       properties:
-        intent:
+        analysis_type:
           type: string
-          example: "analyze"
+          enum: [event_count, event_list, busiest_day, emptiest_day, most_common_event, summary]
         date_range:
           type: object
           properties:
             start:
               type: string
+              example: "2025-07-24"
             end:
               type: string
-        analysis_type:
-          type: string
-          enum:
-            - busiest_day
-            - emptiest_day
-            - event_count
-            - event_list
-            - most_common_event
-            - summary
+              example: "2025-07-30"
         filter_keywords:
           type: array
           items:
