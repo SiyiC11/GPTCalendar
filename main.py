@@ -11,8 +11,12 @@ app = Flask(__name__)
 CORS(app)
 
 # 讀取 GOOGLE_CREDS_B64 環境變數並解碼為 JSON
-creds_json = base64.b64decode(os.environ["GOOGLE_CREDS_B64"]).decode()
-credentials = service_account.Credentials.from_service_account_info(json.loads(creds_json))
+creds_b64 = os.environ.get("GOOGLE_CREDS_B64")
+if creds_b64 is None:
+    raise ValueError("Missing GOOGLE_CREDS_B64 environment variable")
+
+creds_json = json.loads(base64.b64decode(creds_b64))
+credentials = service_account.Credentials.from_service_account_info(creds_json)
 
 calendar_id = 'primary'
 
