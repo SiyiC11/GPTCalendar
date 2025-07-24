@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, time
 import os
 import json
 import base64
@@ -12,7 +12,7 @@ from googleapiclient.discovery import build
 app = Flask(__name__)
 CORS(app)
 
-# === 🔐 認證 ===
+# === 🔐 認證設定 ===
 creds_b64 = os.environ.get("GOOGLE_CREDS_B64")
 if creds_b64 is None:
     raise ValueError("Missing GOOGLE_CREDS_B64 environment variable")
@@ -21,7 +21,6 @@ creds_json = json.loads(base64.b64decode(creds_b64))
 credentials = service_account.Credentials.from_service_account_info(creds_json)
 calendar_id = 'cwp319203@gmail.com'
 
-# === 📆 Google Calendar 服務 ===
 def get_calendar_service():
     return build("calendar", "v3", credentials=credentials)
 
@@ -90,7 +89,7 @@ def update_event():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# === 🔍 查詢事件（指定區間） ===
+# === 🔍 查詢事件 ===
 @app.route("/query_events", methods=["GET"])
 def query_events():
     start_str = request.args.get('start')
@@ -99,8 +98,8 @@ def query_events():
         return jsonify({'error': 'Missing start or end date'}), 400
 
     try:
-        start_dt = datetime.strptime(start_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-        end_dt = datetime.strptime(end_str, "%Y-%m-%d").replace(tzinfo=timezone.utc) + timedelta(days=1)
+        start_dt = datetime.combine(datetime.strptime(start_str, "%Y-%m-%d").date(), time.min)
+        end_dt = datetime.combine(datetime.strptime(end_str, "%Y-%m-%d").date(), time.max)
 
         service = get_calendar_service()
         events_result = service.events().list(
@@ -119,33 +118,27 @@ def query_events():
 # === 📊 分析事件 ===
 @app.route("/analyze_events", methods=["POST"])
 def analyze_events():
-    raw_data = request.json
-
-    # ✅ 過濾允許欄位
-    allowed_keys = {"analysis_type", "date_range", "filter_keywords"}
-    data = {k: v for k, v in raw_data.items() if k in allowed_keys}
-
-    print("📥 淨化後 analyze_events data:\n", json.dumps(data, indent=2))
-
+    data = request.json
     analysis_type = data.get("analysis_type")
     start = data.get("date_range", {}).get("start")
     end = data.get("date_range", {}).get("end")
     keywords = data.get("filter_keywords", [])
-
+    
     if not start or not end or not analysis_type:
         return jsonify({"error": "Missing required parameters"}), 400
 
     try:
-        start_dt = datetime.strptime(start, "%Y-%m-%d")
-        end_dt = datetime.strptime(end, "%Y-%m-%d") + timedelta(days=1)
+        start_dt = datetime.combine(datetime.strptime(start, "%Y-%m-%d").date(), time.min)
+        end_dt = datetime.combine(datetime.strptime(end, "%Y-%m-%d").date(), time.max)
         service = get_calendar_service()
         events_result = service.events().list(
             calendarId=calendar_id,
-            timeMin=start_dt.isoformat() + 'T00:00:00+10:00',
-            timeMax=end_dt.isoformat() + 'T00:00:00+10:00',
+            timeMin=start_dt.isoformat(),
+            timeMax=end_dt.isoformat(),
             singleEvents=True,
             orderBy='startTime'
         ).execute()
+
         events = events_result.get('items', [])
 
         if keywords:
@@ -161,7 +154,7 @@ def analyze_events():
             return jsonify({"busiest_day": busiest[0] if busiest else None})
         elif analysis_type == "emptiest_day":
             counter = Counter(e['start']['dateTime'][:10] for e in events)
-            all_days = [(start_dt + timedelta(days=i)).strftime("%Y-%m-%d") for i in range((end_dt - start_dt).days)]
+            all_days = [(start_dt + timedelta(days=i)).strftime("%Y-%m-%d") for i in range((end_dt - start_dt).days + 1)]
             emptiest = min(all_days, key=lambda d: counter.get(d, 0))
             return jsonify({"emptiest_day": emptiest})
         elif analysis_type == "most_common_event":
@@ -177,8 +170,7 @@ def analyze_events():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-# === 📄 Plugin 所需檔案 ===
+# === 🔧 Plugin Metadata Files ===
 @app.route("/.well-known/ai-plugin.json")
 def serve_ai_plugin():
     return send_from_directory(".well-known", "ai-plugin.json", mimetype="application/json")
@@ -187,6 +179,6 @@ def serve_ai_plugin():
 def serve_openapi():
     return send_from_directory(".", "openapi.yaml", mimetype="text/yaml")
 
-# === 🏁 主程式入口 ===
+# === 🏁 Entry Point ===
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
