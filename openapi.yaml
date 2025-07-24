@@ -1,127 +1,127 @@
-openapi: 3.1.0
+openapi: 3.0.1
 info:
-  title: GPT Calendar Plugin
-  description: API for managing Google Calendar events and analyzing schedules.
+  title: GPT Calendar
+  description: A personal calendar assistant that helps manage your schedule using natural language. It supports event creation, updates, deletions, queries, and analytics.
   version: "1.0.0"
+
 servers:
   - url: https://gptcalendar.onrender.com
 
 paths:
   /create_event:
     post:
-      summary: Create a new calendar event
       operationId: createEvent
+      summary: Create a calendar event
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EventInput"
+              $ref: '#/components/schemas/EventInput'
       responses:
-        "200":
-          description: Successful creation
+        '200':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
 
   /update_event:
     post:
-      summary: Update an existing event
       operationId: updateEvent
+      summary: Update an existing calendar event
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateEventInput"
+              $ref: '#/components/schemas/UpdateInput'
       responses:
-        "200":
-          description: Successful update
+        '200':
+          description: Event updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
 
   /delete_event:
     post:
-      summary: Delete a calendar event
       operationId: deleteEvent
+      summary: Delete a calendar event
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required: [event_id]
               properties:
                 event_id:
                   type: string
-              required:
-                - event_id
       responses:
-        "200":
-          description: Successful deletion
+        '200':
+          description: Event deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
 
   /query_events:
     get:
-      summary: Get events in a date range
       operationId: queryEvents
+      summary: Get calendar events within a time range
       parameters:
-        - in: query
-          name: start
+        - name: start
+          in: query
           required: true
           schema:
             type: string
             format: date
-        - in: query
-          name: end
+        - name: end
+          in: query
           required: true
           schema:
             type: string
             format: date
       responses:
-        "200":
+        '200':
           description: List of events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
 
   /analyze_events:
     post:
-      summary: Analyze calendar events
       operationId: analyzeEvents
+      summary: Analyze event trends and statistics
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                analysis_type:
-                  type: string
-                  enum:
-                    - busiest_day
-                    - emptiest_day
-                    - most_common_event
-                    - event_count
-                    - event_list
-                    - summary
-                date_range:
-                  type: object
-                  properties:
-                    start:
-                      type: string
-                      format: date
-                    end:
-                      type: string
-                      format: date
-                  required:
-                    - start
-                    - end
-                filter_keywords:
-                  type: array
-                  items:
-                    type: string
-              required:
-                - analysis_type
-                - date_range
+              $ref: '#/components/schemas/AnalyzeInput'
       responses:
-        "200":
-          description: Analysis results
+        '200':
+          description: Analysis result
+          content:
+            application/json:
+              schema:
+                type: object
 
 components:
   schemas:
     EventInput:
       type: object
+      required:
+        - summary
+        - start
+        - end
       properties:
         summary:
           type: string
@@ -137,14 +137,11 @@ components:
           type: string
         recurrence:
           type: string
-      required:
-        - summary
-        - start
-        - end
-        - user_timezone
 
-    UpdateEventInput:
+    UpdateInput:
       type: object
+      required:
+        - event_id
       properties:
         event_id:
           type: string
@@ -160,5 +157,41 @@ components:
           format: date-time
         user_timezone:
           type: string
+
+    AnalyzeInput:
+      type: object
       required:
-        - event_id
+        - analysis_type
+        - date_range
+      properties:
+        analysis_type:
+          type: string
+          enum:
+            - busiest_day
+            - emptiest_day
+            - most_common_event
+            - event_count
+            - event_list
+            - summary
+        date_range:
+          type: object
+          required: [start, end]
+          properties:
+            start:
+              type: string
+              format: date
+            end:
+              type: string
+              format: date
+        filter_keywords:
+          type: array
+          items:
+            type: string
+
+    SuccessResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        event_id:
+          type: string
