@@ -1,4 +1,6 @@
 openapi: 3.0.1
+servers:
+  - url: https://gptcalendar.onrender.com
 info:
   title: ReminderGPT Calendar API
   description: API for creating reminders using Google Calendar
