@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
-  title: GPTCalendar API
-  description: API for managing events in Google Calendar
-  version: "1.0"
+  title: GPT Calendar
+  description: An assistant to help manage and analyze your Google Calendar events.
+  version: "1.0.0"
 
 servers:
   - url: https://gptcalendar.onrender.com
@@ -17,7 +17,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EventInput"
+              $ref: '#/components/schemas/EventInput'
       responses:
         "200":
           description: Successful creation
@@ -31,7 +31,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateInput"
+              $ref: '#/components/schemas/UpdateInput'
       responses:
         "200":
           description: Successful update
@@ -45,17 +45,14 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                event_id:
-                  type: string
+              $ref: '#/components/schemas/DeleteInput'
       responses:
         "200":
           description: Successful deletion
 
   /query_events:
     get:
-      summary: Get events in a date range
+      summary: Query events in a date range
       operationId: queryEvents
       parameters:
         - name: start
@@ -73,17 +70,26 @@ paths:
       responses:
         "200":
           description: List of events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
 
   /analyze_events:
     post:
-      summary: Analyze events for trends
+      summary: Analyze calendar events
       operationId: analyzeEvents
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AnalysisInput"
+              $ref: '#/components/schemas/AnalysisInput'
       responses:
         "200":
           description: Analysis result
@@ -126,9 +132,19 @@ components:
           type: string
         start:
           type: string
+          format: date-time
         end:
           type: string
+          format: date-time
         user_timezone:
+          type: string
+
+    DeleteInput:
+      type: object
+      required:
+        - event_id
+      properties:
+        event_id:
           type: string
 
     AnalysisInput:
@@ -162,3 +178,6 @@ components:
           type: array
           items:
             type: string
+        user_timezone:
+          type: string
+          description: Optional. The user's timezone (e.g. Australia/Sydney)
