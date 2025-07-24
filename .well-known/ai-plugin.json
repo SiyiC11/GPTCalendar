@@ -2,8 +2,8 @@
   "schema_version": "v1",
   "name_for_human": "GPT Calendar",
   "name_for_model": "gpt_calendar",
-  "description_for_human": "Create, edit, delete, and analyze calendar events using natural language.",
-  "description_for_model": "A plugin for managing calendar events using natural language. Supports creating, querying, updating, deleting, and analyzing events.",
+  "description_for_human": "Create, update, delete, and analyze calendar events using natural language.",
+  "description_for_model": "A plugin that allows ChatGPT to manage Google Calendar events. Supports create, update, delete, query, and event analysis.",
   "auth": {
     "type": "none"
   },
@@ -11,7 +11,5 @@
     "type": "openapi",
     "url": "https://gptcalendar.onrender.com/openapi.yaml"
   },
-  "logo_url": "https://gptcalendar.onrender.com/logo.png",
-  "contact_email": "support@example.com",
-  "legal_info_url": "https://gptcalendar.onrender.com/legal"
+  "contact_email": "cwp319203@gmail.com"
 }
