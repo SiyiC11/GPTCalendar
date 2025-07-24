@@ -1,15 +1,61 @@
 openapi: 3.1.0
+info:
+  title: GPT Calendar API
+  description: A plugin that allows ChatGPT to create, query, update, delete, and analyze Google Calendar events via natural language.
+  version: "1.0.0"
 servers:
   - url: https://gptcalendar.onrender.com
-info:
-  title: ReminderGPT Calendar API
-  description: API for creating reminders using Google Calendar
-  version: "1.0"
 paths:
-  /create_reminder:
+  /create_event:
     post:
-      summary: Create a new calendar event
-      operationId: createReminder
+      summary: Create a calendar event
+      operationId: createEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventInput'
+      responses:
+        '200':
+          description: Successful creation
+  /query_events:
+    get:
+      summary: Query calendar events within a date range
+      operationId: queryEvents
+      parameters:
+        - name: start
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "2025-07-22"
+        - name: end
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "2025-07-28"
+      responses:
+        '200':
+          description: Successful query
+  /update_event:
+    post:
+      summary: Update a calendar event
+      operationId: updateEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventUpdate'
+      responses:
+        '200':
+          description: Successful update
+  /delete_event:
+    post:
+      summary: Delete a calendar event
+      operationId: deleteEvent
       requestBody:
         required: true
         content:
@@ -17,14 +63,81 @@ paths:
             schema:
               type: object
               properties:
-                summary:
-                  type: string
-                description:
-                  type: string
-                start:
-                  type: string
-                end:
+                event_id:
                   type: string
       responses:
         '200':
-          description: Event created successfully
+          description: Successful deletion
+  /analyze_events:
+    post:
+      summary: Analyze calendar events within a date range
+      operationId: analyzeEvents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventAnalysis'
+      responses:
+        '200':
+          description: Successful analysis
+components:
+  schemas:
+    EventInput:
+      type: object
+      properties:
+        summary:
+          type: string
+        description:
+          type: string
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+        timezone:
+          type: string
+    EventUpdate:
+      type: object
+      properties:
+        event_id:
+          type: string
+        summary:
+          type: string
+        description:
+          type: string
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+        timezone:
+          type: string
+    EventAnalysis:
+      type: object
+      properties:
+        intent:
+          type: string
+          example: "analyze"
+        date_range:
+          type: object
+          properties:
+            start:
+              type: string
+            end:
+              type: string
+        analysis_type:
+          type: string
+          enum:
+            - busiest_day
+            - emptiest_day
+            - event_count
+            - event_list
+            - most_common_event
+            - summary
+        filter_keywords:
+          type: array
+          items:
+            type: string
