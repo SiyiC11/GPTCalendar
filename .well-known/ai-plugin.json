@@ -7,7 +7,7 @@
   "auth": { "type": "none" },
   "api": {
     "type": "openapi",
-    "url": "https://your-domain.onrender.com/openapi.yaml"
+    "url": "https://gptcalendar.onrender.com/openapi.yaml"
   },
   "logo_url": "https://avatars.githubusercontent.com/u/139393199",
   "contact_email": "support@radiai.care",
