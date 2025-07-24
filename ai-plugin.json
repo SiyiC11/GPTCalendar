@@ -1,0 +1,15 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "ReminderGPT",
+  "name_for_model": "reminder_gpt",
+  "description_for_human": "Create personal reminders using Google Calendar.",
+  "description_for_model": "Plugin for creating personal calendar events using Google Calendar API.",
+  "auth": { "type": "none" },
+  "api": {
+    "type": "openapi",
+    "url": "https://radiai-calendar.onrender.com/openapi.yaml"
+  },
+  "logo_url": "https://avatars.githubusercontent.com/u/139393199",
+  "contact_email": "support@radiai.care",
+  "legal_info_url": "https://radiai.care/legal"
+}
