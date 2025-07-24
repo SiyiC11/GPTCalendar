@@ -1,4 +1,4 @@
-openapi: 3.0.1
+openapi: 3.1.0
 info:
   title: GPT Calendar
   description: A personal calendar assistant that helps manage your schedule using natural language. It supports event creation, updates, deletions, queries, and analytics.
