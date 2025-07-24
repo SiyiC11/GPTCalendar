@@ -18,7 +18,7 @@ if creds_b64 is None:
 
 creds_json = json.loads(base64.b64decode(creds_b64))
 credentials = service_account.Credentials.from_service_account_info(creds_json)
-calendar_id = 'primary'
+calendar_id = 'cwp319203@gmail.com'
 
 # === 📆 建立行事曆提醒 API ===
 @app.route("/create_reminder", methods=["POST"])
