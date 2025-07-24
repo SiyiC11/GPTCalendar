@@ -10,7 +10,6 @@ from googleapiclient.discovery import build
 app = Flask(__name__)
 CORS(app)
 
-# 讀取 GOOGLE_CREDS_B64 環境變數並解碼為 JSON
 creds_b64 = os.environ.get("GOOGLE_CREDS_B64")
 if creds_b64 is None:
     raise ValueError("Missing GOOGLE_CREDS_B64 environment variable")
