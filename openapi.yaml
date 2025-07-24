@@ -1,9 +1,8 @@
 openapi: 3.1.0
 info:
-  title: GPT Calendar
-  description: An assistant to help manage and analyze your Google Calendar events.
+  title: GPT Calendar Plugin
+  description: API for managing Google Calendar events and analyzing schedules.
   version: "1.0.0"
-
 servers:
   - url: https://gptcalendar.onrender.com
 
@@ -17,7 +16,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EventInput'
+              $ref: "#/components/schemas/EventInput"
       responses:
         "200":
           description: Successful creation
@@ -31,7 +30,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateInput'
+              $ref: "#/components/schemas/UpdateEventInput"
       responses:
         "200":
           description: Successful update
@@ -45,24 +44,29 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DeleteInput'
+              type: object
+              properties:
+                event_id:
+                  type: string
+              required:
+                - event_id
       responses:
         "200":
           description: Successful deletion
 
   /query_events:
     get:
-      summary: Query events in a date range
+      summary: Get events in a date range
       operationId: queryEvents
       parameters:
-        - name: start
-          in: query
+        - in: query
+          name: start
           required: true
           schema:
             type: string
             format: date
-        - name: end
-          in: query
+        - in: query
+          name: end
           required: true
           schema:
             type: string
@@ -70,15 +74,6 @@ paths:
       responses:
         "200":
           description: List of events
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  events:
-                    type: array
-                    items:
-                      type: object
 
   /analyze_events:
     post:
@@ -89,20 +84,44 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AnalysisInput'
+              type: object
+              properties:
+                analysis_type:
+                  type: string
+                  enum:
+                    - busiest_day
+                    - emptiest_day
+                    - most_common_event
+                    - event_count
+                    - event_list
+                    - summary
+                date_range:
+                  type: object
+                  properties:
+                    start:
+                      type: string
+                      format: date
+                    end:
+                      type: string
+                      format: date
+                  required:
+                    - start
+                    - end
+                filter_keywords:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - analysis_type
+                - date_range
       responses:
         "200":
-          description: Analysis result
+          description: Analysis results
 
 components:
   schemas:
     EventInput:
       type: object
-      required:
-        - summary
-        - start
-        - end
-        - user_timezone
       properties:
         summary:
           type: string
@@ -118,11 +137,14 @@ components:
           type: string
         recurrence:
           type: string
-
-    UpdateInput:
-      type: object
       required:
-        - event_id
+        - summary
+        - start
+        - end
+        - user_timezone
+
+    UpdateEventInput:
+      type: object
       properties:
         event_id:
           type: string
@@ -138,46 +160,5 @@ components:
           format: date-time
         user_timezone:
           type: string
-
-    DeleteInput:
-      type: object
       required:
         - event_id
-      properties:
-        event_id:
-          type: string
-
-    AnalysisInput:
-      type: object
-      required:
-        - analysis_type
-        - date_range
-      properties:
-        analysis_type:
-          type: string
-          enum:
-            - busiest_day
-            - emptiest_day
-            - most_common_event
-            - event_count
-            - event_list
-            - summary
-        date_range:
-          type: object
-          required:
-            - start
-            - end
-          properties:
-            start:
-              type: string
-              format: date
-            end:
-              type: string
-              format: date
-        filter_keywords:
-          type: array
-          items:
-            type: string
-        user_timezone:
-          type: string
-          description: Optional. The user's timezone (e.g. Australia/Sydney)
