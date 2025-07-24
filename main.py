@@ -119,12 +119,18 @@ def query_events():
 # === 📊 分析事件 ===
 @app.route("/analyze_events", methods=["POST"])
 def analyze_events():
-    data = request.json
+    raw_data = request.json
+
+    # ✅ 過濾允許欄位
+    allowed_keys = {"analysis_type", "date_range", "filter_keywords"}
+    data = {k: v for k, v in raw_data.items() if k in allowed_keys}
+
+    print("📥 淨化後 analyze_events data:\n", json.dumps(data, indent=2))
+
     analysis_type = data.get("analysis_type")
     start = data.get("date_range", {}).get("start")
     end = data.get("date_range", {}).get("end")
     keywords = data.get("filter_keywords", [])
-    user_timezone = data.get("user_timezone", "Australia/Sydney")  # ✅ 加入此欄位
 
     if not start or not end or not analysis_type:
         return jsonify({"error": "Missing required parameters"}), 400
