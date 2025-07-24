@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import os
 import json
 import base64
+from collections import Counter
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -29,20 +30,20 @@ def get_calendar_service():
 def create_event():
     data = request.json
     service = get_calendar_service()
+    time_zone = data.get('user_timezone', 'Australia/Sydney')
 
     event = {
         'summary': data['summary'],
         'description': data.get('description', ''),
         'start': {
             'dateTime': data['start'],
-            'timeZone': 'Australia/Sydney',
+            'timeZone': time_zone,
         },
         'end': {
             'dateTime': data['end'],
-            'timeZone': 'Australia/Sydney',
+            'timeZone': time_zone,
         },
     }
-
     if 'recurrence' in data:
         event['recurrence'] = [data['recurrence']]
 
@@ -81,29 +82,30 @@ def update_event():
         event['description'] = data.get('description', event.get('description'))
         event['start']['dateTime'] = data.get('start', event['start']['dateTime'])
         event['end']['dateTime'] = data.get('end', event['end']['dateTime'])
+        event['start']['timeZone'] = data.get('user_timezone', event['start'].get('timeZone', 'Australia/Sydney'))
+        event['end']['timeZone'] = data.get('user_timezone', event['end'].get('timeZone', 'Australia/Sydney'))
 
         updated_event = service.events().update(calendarId=calendar_id, eventId=event_id, body=event).execute()
         return jsonify({'status': 'updated', 'event_id': updated_event.get('id')})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# === 🔍 查詢事件（特定日期） ===
+# === 🔍 查詢事件（指定區間） ===
 @app.route("/query_events", methods=["GET"])
 def query_events():
-    date_str = request.args.get('date')  # 格式 YYYY-MM-DD
-    if not date_str:
-        return jsonify({'error': 'Missing date parameter'}), 400
+    start_str = request.args.get('start')  # YYYY-MM-DD
+    end_str = request.args.get('end')      # YYYY-MM-DD
+    if not start_str or not end_str:
+        return jsonify({'error': 'Missing start or end date'}), 400
 
     try:
-        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-        start_of_day = date_obj.isoformat() + 'T00:00:00+10:00'
-        end_of_day = date_obj.isoformat() + 'T23:59:59+10:00'
-
+        start_dt = datetime.strptime(start_str, "%Y-%m-%d")
+        end_dt = datetime.strptime(end_str, "%Y-%m-%d") + timedelta(days=1)
         service = get_calendar_service()
         events_result = service.events().list(
             calendarId=calendar_id,
-            timeMin=start_of_day,
-            timeMax=end_of_day,
+            timeMin=start_dt.isoformat() + 'T00:00:00+10:00',
+            timeMax=end_dt.isoformat() + 'T00:00:00+10:00',
             singleEvents=True,
             orderBy='startTime'
         ).execute()
@@ -112,6 +114,60 @@ def query_events():
         return jsonify({'events': events})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# === 📊 分析事件 ===
+@app.route("/analyze_events", methods=["POST"])
+def analyze_events():
+    data = request.json
+    analysis_type = data.get("analysis_type")
+    start = data.get("date_range", {}).get("start")
+    end = data.get("date_range", {}).get("end")
+    keywords = data.get("filter_keywords", [])
+
+    if not start or not end or not analysis_type:
+        return jsonify({"error": "Missing required parameters"}), 400
+
+    try:
+        start_dt = datetime.strptime(start, "%Y-%m-%d")
+        end_dt = datetime.strptime(end, "%Y-%m-%d") + timedelta(days=1)
+        service = get_calendar_service()
+        events_result = service.events().list(
+            calendarId=calendar_id,
+            timeMin=start_dt.isoformat() + 'T00:00:00+10:00',
+            timeMax=end_dt.isoformat() + 'T00:00:00+10:00',
+            singleEvents=True,
+            orderBy='startTime'
+        ).execute()
+        events = events_result.get('items', [])
+
+        if keywords:
+            events = [e for e in events if any(k.lower() in e.get('summary', '').lower() for k in keywords)]
+
+        if analysis_type == "event_count":
+            return jsonify({"count": len(events)})
+        elif analysis_type == "event_list":
+            return jsonify({"events": events})
+        elif analysis_type == "busiest_day":
+            counter = Counter(e['start']['dateTime'][:10] for e in events)
+            busiest = counter.most_common(1)
+            return jsonify({"busiest_day": busiest[0] if busiest else None})
+        elif analysis_type == "emptiest_day":
+            counter = Counter(e['start']['dateTime'][:10] for e in events)
+            all_days = [(start_dt + timedelta(days=i)).strftime("%Y-%m-%d") for i in range((end_dt - start_dt).days)]
+            emptiest = min(all_days, key=lambda d: counter.get(d, 0))
+            return jsonify({"emptiest_day": emptiest})
+        elif analysis_type == "most_common_event":
+            names = [e.get("summary", "") for e in events]
+            most = Counter(names).most_common(1)
+            return jsonify({"most_common_event": most[0] if most else None})
+        elif analysis_type == "summary":
+            total = len(events)
+            kinds = Counter(e.get("summary", "") for e in events)
+            return jsonify({"total": total, "breakdown": kinds})
+
+        return jsonify({"error": "Invalid analysis_type"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # === 📄 Plugin 所需檔案 ===
 @app.route("/.well-known/ai-plugin.json")
