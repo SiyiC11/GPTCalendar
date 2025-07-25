@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: GPT Calendar Plugin
-  description: API for managing Google Calendar events and analyzing schedules.
+  description: API for managing Google Calendar events
   version: "1.0.0"
 servers:
   - url: https://gptcalendar.onrender.com
@@ -9,17 +9,17 @@ servers:
 paths:
   /create_event:
     post:
-      summary: Create a new calendar event
+      summary: Create a new event
       operationId: createEvent
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EventInput"
+              $ref: "#/components/schemas/CalendarEvent"
       responses:
         "200":
-          description: Successful creation
+          description: Event created
 
   /update_event:
     post:
@@ -30,14 +30,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateEventInput"
+              allOf:
+                - $ref: "#/components/schemas/CalendarEvent"
+                - type: object
+                  required:
+                    - eventId
+                  properties:
+                    eventId:
+                      type: string
       responses:
         "200":
-          description: Successful update
+          description: Event updated
 
   /delete_event:
     post:
-      summary: Delete a calendar event
+      summary: Delete an event
       operationId: deleteEvent
       requestBody:
         required: true
@@ -45,18 +52,18 @@ paths:
           application/json:
             schema:
               type: object
-              properties:
-                event_id:
-                  type: string
               required:
-                - event_id
+                - eventId
+              properties:
+                eventId:
+                  type: string
       responses:
         "200":
-          description: Successful deletion
+          description: Event deleted
 
   /query_events:
     post:
-      summary: Get events in a date range
+      summary: Query events in a time range
       operationId: queryEvents
       requestBody:
         required: true
@@ -64,6 +71,9 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - start
+                - end
               properties:
                 start:
                   type: string
@@ -71,97 +81,48 @@ paths:
                 end:
                   type: string
                   format: date
-              required:
-                - start
-                - end
       responses:
         "200":
           description: List of events
 
-  /analyze_events:
-    post:
-      summary: Analyze calendar events
-      operationId: analyzeEvents
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                analysis_type:
-                  type: string
-                  enum:
-                    - busiest_day
-                    - emptiest_day
-                    - most_common_event
-                    - event_count
-                    - event_list
-                    - summary
-                date_range:
-                  type: object
-                  properties:
-                    start:
-                      type: string
-                      format: date
-                    end:
-                      type: string
-                      format: date
-                  required:
-                    - start
-                    - end
-                filter_keywords:
-                  type: array
-                  items:
-                    type: string
-              required:
-                - analysis_type
-                - date_range
-      responses:
-        "200":
-          description: Analysis results
-
 components:
   schemas:
-    EventInput:
+    CalendarEvent:
       type: object
-      properties:
-        summary:
-          type: string
-        description:
-          type: string
-        start:
-          type: string
-          format: date-time
-        end:
-          type: string
-          format: date-time
-        user_timezone:
-          type: string
-        recurrence:
-          type: string
       required:
         - summary
         - start
         - end
-        - user_timezone
-
-    UpdateEventInput:
-      type: object
       properties:
-        event_id:
-          type: string
         summary:
           type: string
         description:
           type: string
+        location:
+          type: string
+        recurrence:
+          type: array
+          items:
+            type: string
         start:
-          type: string
-          format: date-time
+          type: object
+          required:
+            - dateTime
+            - timeZone
+          properties:
+            dateTime:
+              type: string
+              format: date-time
+            timeZone:
+              type: string
         end:
-          type: string
-          format: date-time
-        user_timezone:
-          type: string
-      required:
-        - event_id
+          type: object
+          required:
+            - dateTime
+            - timeZone
+          properties:
+            dateTime:
+              type: string
+              format: date-time
+            timeZone:
+              type: string
