@@ -55,22 +55,25 @@ paths:
           description: Successful deletion
 
   /query_events:
-    get:
+    post:
       summary: Get events in a date range
       operationId: queryEvents
-      parameters:
-        - in: query
-          name: start
-          required: true
-          schema:
-            type: string
-            format: date
-        - in: query
-          name: end
-          required: true
-          schema:
-            type: string
-            format: date
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                start:
+                  type: string
+                  format: date
+                end:
+                  type: string
+                  format: date
+              required:
+                - start
+                - end
       responses:
         "200":
           description: List of events
