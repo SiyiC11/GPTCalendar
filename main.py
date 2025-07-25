@@ -1,185 +1,89 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-from datetime import datetime, timedelta, time
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 import os
 import json
 import base64
-from collections import Counter
-
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
 
 app = Flask(__name__)
 CORS(app)
 
-# === 🔐 認證設定 ===
+# === 認證設定 ===
 creds_b64 = os.environ.get("GOOGLE_CREDS_B64")
-if creds_b64 is None:
+if not creds_b64:
     raise ValueError("Missing GOOGLE_CREDS_B64 environment variable")
-
 creds_json = json.loads(base64.b64decode(creds_b64))
 credentials = service_account.Credentials.from_service_account_info(creds_json)
-calendar_id = 'cwp319203@gmail.com'
+calendar_id = "cwp319203@gmail.com"
 
 def get_calendar_service():
     return build("calendar", "v3", credentials=credentials)
 
-# === 🆕 建立事件 ===
+# === 建立或更新事件（Google API 接收格式） ===
 @app.route("/create_event", methods=["POST"])
 def create_event():
-    data = request.json
+    event = request.json
     service = get_calendar_service()
-    time_zone = data.get('user_timezone', 'Australia/Sydney')
-
-    event = {
-        'summary': data['summary'],
-        'description': data.get('description', ''),
-        'start': {
-            'dateTime': data['start'],
-            'timeZone': time_zone,
-        },
-        'end': {
-            'dateTime': data['end'],
-            'timeZone': time_zone,
-        },
-    }
-    if 'recurrence' in data:
-        event['recurrence'] = [data['recurrence']]
-
-    created_event = service.events().insert(calendarId=calendar_id, body=event).execute()
-    return jsonify({'event_id': created_event.get('id'), 'status': 'created'})
-
-# === 🗑️ 刪除事件 ===
-@app.route("/delete_event", methods=["POST"])
-def delete_event():
-    data = request.json
-    service = get_calendar_service()
-
-    event_id = data.get('event_id')
-    if not event_id:
-        return jsonify({'error': 'Missing event_id'}), 400
-
     try:
-        service.events().delete(calendarId=calendar_id, eventId=event_id).execute()
-        return jsonify({'status': 'deleted'})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-# === ✏️ 修改事件 ===
-@app.route("/update_event", methods=["POST"])
-def update_event():
-    data = request.json
-    service = get_calendar_service()
-    event_id = data.get('event_id')
-    if not event_id:
-        return jsonify({'error': 'Missing event_id'}), 400
-
-    try:
-        event = service.events().get(calendarId=calendar_id, eventId=event_id).execute()
-
-        event['summary'] = data.get('summary', event.get('summary'))
-        event['description'] = data.get('description', event.get('description'))
-        event['start']['dateTime'] = data.get('start', event['start']['dateTime'])
-        event['end']['dateTime'] = data.get('end', event['end']['dateTime'])
-        event['start']['timeZone'] = data.get('user_timezone', event['start'].get('timeZone', 'Australia/Sydney'))
-        event['end']['timeZone'] = data.get('user_timezone', event['end'].get('timeZone', 'Australia/Sydney'))
-
-        updated_event = service.events().update(calendarId=calendar_id, eventId=event_id, body=event).execute()
-        return jsonify({'status': 'updated', 'event_id': updated_event.get('id')})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-# === 🔍 查詢事件 ===
-@app.route("/query_events", methods=["POST"])
-def query_events():
-    data = request.json
-    start_str = data.get('start')
-    end_str = data.get('end')
-    if not start_str or not end_str:
-        return jsonify({'error': 'Missing start or end date'}), 400
-
-    try:
-        start_dt = datetime.combine(datetime.strptime(start_str, "%Y-%m-%d").date(), time.min)
-        end_dt = datetime.combine(datetime.strptime(end_str, "%Y-%m-%d").date(), time.max)
-
-        service = get_calendar_service()
-        events_result = service.events().list(
-            calendarId=calendar_id,
-            timeMin=start_dt.isoformat(),
-            timeMax=end_dt.isoformat(),
-            singleEvents=True,
-            orderBy='startTime'
-        ).execute()
-
-        events = events_result.get('items', [])
-        return jsonify({'events': events})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-# === 📊 分析事件 ===
-@app.route("/analyze_events", methods=["POST"])
-def analyze_events():
-    data = request.json
-    analysis_type = data.get("analysis_type")
-    start = data.get("date_range", {}).get("start")
-    end = data.get("date_range", {}).get("end")
-    keywords = data.get("filter_keywords", [])
-    
-    if not start or not end or not analysis_type:
-        return jsonify({"error": "Missing required parameters"}), 400
-
-    try:
-        start_dt = datetime.combine(datetime.strptime(start, "%Y-%m-%d").date(), time.min)
-        end_dt = datetime.combine(datetime.strptime(end, "%Y-%m-%d").date(), time.max)
-        service = get_calendar_service()
-        events_result = service.events().list(
-            calendarId=calendar_id,
-            timeMin=start_dt.isoformat(),
-            timeMax=end_dt.isoformat(),
-            singleEvents=True,
-            orderBy='startTime'
-        ).execute()
-
-        events = events_result.get('items', [])
-
-        if keywords:
-            events = [e for e in events if any(k.lower() in e.get('summary', '').lower() for k in keywords)]
-
-        if analysis_type == "event_count":
-            return jsonify({"count": len(events)})
-        elif analysis_type == "event_list":
-            return jsonify({"events": events})
-        elif analysis_type == "busiest_day":
-            counter = Counter(e['start']['dateTime'][:10] for e in events)
-            busiest = counter.most_common(1)
-            return jsonify({"busiest_day": busiest[0] if busiest else None})
-        elif analysis_type == "emptiest_day":
-            counter = Counter(e['start']['dateTime'][:10] for e in events)
-            all_days = [(start_dt + timedelta(days=i)).strftime("%Y-%m-%d") for i in range((end_dt - start_dt).days + 1)]
-            emptiest = min(all_days, key=lambda d: counter.get(d, 0))
-            return jsonify({"emptiest_day": emptiest})
-        elif analysis_type == "most_common_event":
-            names = [e.get("summary", "") for e in events]
-            most = Counter(names).most_common(1)
-            return jsonify({"most_common_event": most[0] if most else None})
-        elif analysis_type == "summary":
-            total = len(events)
-            kinds = Counter(e.get("summary", "") for e in events)
-            return jsonify({"total": total, "breakdown": kinds})
-
-        return jsonify({"error": "Invalid analysis_type"}), 400
+        result = service.events().insert(calendarId=calendar_id, body=event).execute()
+        return jsonify({"status": "created", "event_id": result.get("id")})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# === 🔧 Plugin Metadata Files ===
-@app.route("/.well-known/ai-plugin.json")
-def serve_ai_plugin():
-    return send_from_directory(".well-known", "ai-plugin.json", mimetype="application/json")
+@app.route("/update_event", methods=["POST"])
+def update_event():
+    data = request.json
+    event_id = data.get("eventId")
+    if not event_id:
+        return jsonify({"error": "Missing eventId"}), 400
+    service = get_calendar_service()
+    try:
+        # Get current event and update fields
+        event = service.events().get(calendarId=calendar_id, eventId=event_id).execute()
+        for k in ["summary", "description", "location", "start", "end", "recurrence"]:
+            if k in data:
+                event[k] = data[k]
+        updated = service.events().update(calendarId=calendar_id, eventId=event_id, body=event).execute()
+        return jsonify({"status": "updated", "event_id": updated.get("id")})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-@app.route("/openapi.yaml")
-def serve_openapi():
-    return send_from_directory(".", "openapi.yaml", mimetype="text/yaml")
+@app.route("/delete_event", methods=["POST"])
+def delete_event():
+    data = request.json
+    event_id = data.get("eventId")
+    if not event_id:
+        return jsonify({"error": "Missing eventId"}), 400
+    service = get_calendar_service()
+    try:
+        service.events().delete(calendarId=calendar_id, eventId=event_id).execute()
+        return jsonify({"status": "deleted"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-# === 🏁 Entry Point ===
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+@app.route("/query_events", methods=["POST"])
+def query_events():
+    data = request.json
+    start = data.get("start")
+    end = data.get("end")
+    if not start or not end:
+        return jsonify({"error": "Missing start or end"}), 400
+    service = get_calendar_service()
+    try:
+        events = service.events().list(
+            calendarId=calendar_id,
+            timeMin=start + "T00:00:00",
+            timeMax=end + "T23:59:59",
+            singleEvents=True,
+            orderBy="startTime"
+        ).execute()
+        return jsonify(events.get("items", []))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 健康檢查
+@app.route("/")
+def home():
+    return "GPTCalendar backend is running."
+
