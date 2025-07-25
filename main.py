@@ -90,10 +90,11 @@ def update_event():
         return jsonify({'error': str(e)}), 500
 
 # === 🔍 查詢事件 ===
-@app.route("/query_events", methods=["GET"])
+@app.route("/query_events", methods=["POST"])
 def query_events():
-    start_str = request.args.get('start')
-    end_str = request.args.get('end')
+    data = request.json
+    start_str = data.get('start')
+    end_str = data.get('end')
     if not start_str or not end_str:
         return jsonify({'error': 'Missing start or end date'}), 400
 
