@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -81,6 +81,15 @@ def query_events():
         return jsonify(events.get("items", []))
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# === 靜態文件路由 ===
+@app.route("/openapi.yaml")
+def serve_openapi():
+    return send_from_directory(".", "openapi.yaml", mimetype="text/yaml")
+
+@app.route("/.well-known/ai-plugin.json")
+def serve_ai_plugin():
+    return send_from_directory(".well-known", "ai-plugin.json", mimetype="application/json")
 
 # 健康檢查
 @app.route("/")
