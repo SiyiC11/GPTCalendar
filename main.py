@@ -24,6 +24,8 @@ def get_calendar_service():
 @app.route("/create_event", methods=["POST"])
 def create_event():
     event = request.json
+    print("📦 傳送到 Google Calendar 的 JSON：")
+    print(json.dumps(event, indent=2))
     service = get_calendar_service()
     try:
         result = service.events().insert(calendarId=calendar_id, body=event).execute()
