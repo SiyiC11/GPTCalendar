@@ -20,7 +20,7 @@ calendar_id = "cwp319203@gmail.com"
 def get_calendar_service():
     return build("calendar", "v3", credentials=credentials)
 
-# === 建立或更新事件（Google API 接收格式） ===
+# === 建立事件 ===
 @app.route("/create_event", methods=["POST"])
 def create_event():
     event = request.json
@@ -31,6 +31,7 @@ def create_event():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# === 更新事件 ===
 @app.route("/update_event", methods=["POST"])
 def update_event():
     data = request.json
@@ -49,6 +50,7 @@ def update_event():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# === 刪除事件 ===
 @app.route("/delete_event", methods=["POST"])
 def delete_event():
     data = request.json
@@ -62,6 +64,7 @@ def delete_event():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# === 查詢事件 ===
 @app.route("/query_events", methods=["POST"])
 def query_events():
     data = request.json
@@ -91,7 +94,7 @@ def serve_openapi():
 def serve_ai_plugin():
     return send_from_directory(".well-known", "ai-plugin.json", mimetype="application/json")
 
-# 健康檢查
+# === 健康檢查 ===
 @app.route("/")
 def home():
     return "GPTCalendar backend is running."
