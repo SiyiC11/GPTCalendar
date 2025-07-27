@@ -1,148 +1,147 @@
 openapi: 3.1.0
 info:
-title: GPT Calendar Plugin
-description: API for managing Google Calendar events
-version: “1.0.0”
+  title: GPT Calendar Plugin
+  description: API for managing Google Calendar events
+  version: "1.0.0"
 servers:
-
-- url: https://gptcalendar.onrender.com
+  - url: https://gptcalendar.onrender.com
 
 paths:
-/create_event:
-post:
-summary: Create a new event
-operationId: createEvent
-requestBody:
-required: true
-content:
-application/json:
-schema:
-type: object
-required:
-- summary
-- start
-- end
-properties:
-summary:
-type: string
-description:
-type: string
-location:
-type: string
-start:
-type: object
-required:
-- dateTime
-- timeZone
-properties:
-dateTime:
-type: string
-format: date-time
-timeZone:
-type: string
-end:
-type: object
-required:
-- dateTime
-- timeZone
-properties:
-dateTime:
-type: string
-format: date-time
-timeZone:
-type: string
-recurrence:
-type: array
-items:
-type: string
-responses:
-“200”:
-description: Event created
+  /create_event:
+    post:
+      summary: Create a new event
+      operationId: createEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - summary
+                - start
+                - end
+              properties:
+                summary:
+                  type: string
+                description:
+                  type: string
+                location:
+                  type: string
+                start:
+                  type: object
+                  required:
+                    - dateTime
+                    - timeZone
+                  properties:
+                    dateTime:
+                      type: string
+                      format: date-time
+                    timeZone:
+                      type: string
+                end:
+                  type: object
+                  required:
+                    - dateTime
+                    - timeZone
+                  properties:
+                    dateTime:
+                      type: string
+                      format: date-time
+                    timeZone:
+                      type: string
+                recurrence:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Event created
 
-/update_event:
-post:
-summary: Update an existing event
-operationId: updateEvent
-requestBody:
-required: true
-content:
-application/json:
-schema:
-type: object
-required:
-- eventId
-properties:
-eventId:
-type: string
-summary:
-type: string
-description:
-type: string
-location:
-type: string
-start:
-type: object
-properties:
-dateTime:
-type: string
-format: date-time
-timeZone:
-type: string
-end:
-type: object
-properties:
-dateTime:
-type: string
-format: date-time
-timeZone:
-type: string
-recurrence:
-type: array
-items:
-type: string
-responses:
-“200”:
-description: Event updated
+  /update_event:
+    post:
+      summary: Update an existing event
+      operationId: updateEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - eventId
+              properties:
+                eventId:
+                  type: string
+                summary:
+                  type: string
+                description:
+                  type: string
+                location:
+                  type: string
+                start:
+                  type: object
+                  properties:
+                    dateTime:
+                      type: string
+                      format: date-time
+                    timeZone:
+                      type: string
+                end:
+                  type: object
+                  properties:
+                    dateTime:
+                      type: string
+                      format: date-time
+                    timeZone:
+                      type: string
+                recurrence:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Event updated
 
-/delete_event:
-post:
-summary: Delete an event
-operationId: deleteEvent
-requestBody:
-required: true
-content:
-application/json:
-schema:
-type: object
-required:
-- eventId
-properties:
-eventId:
-type: string
-responses:
-“200”:
-description: Event deleted
+  /delete_event:
+    post:
+      summary: Delete an event
+      operationId: deleteEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - eventId
+              properties:
+                eventId:
+                  type: string
+      responses:
+        "200":
+          description: Event deleted
 
-/query_events:
-post:
-summary: Query events in a time range
-operationId: queryEvents
-requestBody:
-required: true
-content:
-application/json:
-schema:
-type: object
-required:
-- start
-- end
-properties:
-start:
-type: string
-format: date
-end:
-type: string
-format: date
-responses:
-“200”:
-description: List of events
+  /query_events:
+    post:
+      summary: Query events in a time range
+      operationId: queryEvents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - start
+                - end
+              properties:
+                start:
+                  type: string
+                  format: date
+                end:
+                  type: string
+                  format: date
+      responses:
+        "200":
+          description: List of events
