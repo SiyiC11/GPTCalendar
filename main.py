@@ -42,7 +42,7 @@ def update_event():
     try:
         # Get current event and update fields
         event = service.events().get(calendarId=calendar_id, eventId=event_id).execute()
-        for k in ["summary", "description", "location", "start", "end", "recurrence"]:
+        for k in ["summary", "description", "location", "start", "end", "recurrence", "reminders"]:
             if k in data:
                 event[k] = data[k]
         updated = service.events().update(calendarId=calendar_id, eventId=event_id, body=event).execute()
