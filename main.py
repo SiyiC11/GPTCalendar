@@ -72,18 +72,22 @@ def query_events():
     end = data.get("end")
     if not start or not end:
         return jsonify({"error": "Missing start or end"}), 400
+    
     service = get_calendar_service()
     try:
+        # 加入時區資訊到時間字串
         events = service.events().list(
             calendarId=calendar_id,
-            timeMin=start + "T00:00:00",
-            timeMax=end + "T23:59:59",
+            timeMin=start + "T00:00:00+10:00",  # 加入澳洲時區
+            timeMax=end + "T23:59:59+10:00",    # 加入澳洲時區
             singleEvents=True,
             orderBy="startTime"
         ).execute()
         return jsonify(events.get("items", []))
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        # 加入更詳細的錯誤訊息
+        print(f"Query error: {str(e)}")
+        return jsonify({"error": f"Google Calendar API error: {str(e)}"}), 500
 
 # === 靜態文件路由 ===
 @app.route("/openapi.yaml")
