@@ -2,8 +2,8 @@
   "schema_version": "v1",
   "name_for_human": "GPT Calendar",
   "name_for_model": "gpt_calendar",
-  "description_for_human": "Manage and analyze calendar events using natural language.",
-  "description_for_model": "A plugin for managing calendar events using natural language. Supports creating, querying, updating, deleting, and analyzing events in Google Calendar.",
+  "description_for_human": "Create, update, delete and query Google Calendar events using natural language in English, 中文（繁體／簡體）.",
+  "description_for_model": "A plugin for managing calendar events using natural language. Supports creation, querying, updates, deletions, and custom reminders. All times default to Australia/Sydney timezone unless otherwise specified.",
   "auth": {
     "type": "none"
   },
