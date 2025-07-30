@@ -22,12 +22,12 @@ REDIRECT_URI = "https://gptcalendar.onrender.com/oauth2callback"
 # Google OAuth 客戶端配置
 GOOGLE_CLIENT_CONFIG = {
     "web": {
-        "client_id": os.environ.get("GOOGLE_CLIENT_ID"),
+        "client_id": os.environ.get("GOOGLE_CLIENT_ID", "").strip(),
         "project_id": "chatgpt-reminder-466905",
         "auth_uri": "https://accounts.google.com/o/oauth2/auth",
         "token_uri": "https://oauth2.googleapis.com/token",
         "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-        "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET"),
+        "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET", "").strip(),
         "redirect_uris": [REDIRECT_URI],
         "javascript_origins": ["https://gptcalendar.onrender.com"]
     }
