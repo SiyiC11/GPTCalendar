@@ -127,6 +127,7 @@ paths:
           description: Events returned
 
 components:
+  schemas: {}   # ✅ 必須至少是一個空 object
   securitySchemes:
     OAuth2:
       type: oauth2
