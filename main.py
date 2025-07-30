@@ -285,6 +285,15 @@ def not_found(error):
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({"error": "Internal server error"}), 500
+from flask import send_from_directory
+
+@app.route("/openapi.yaml")
+def openapi_spec():
+    return send_from_directory(".", "openapi.yaml", mimetype="text/yaml")
+
+@app.route("/.well-known/ai-plugin.json")
+def plugin_manifest():
+    return send_from_directory(".well-known", "ai-plugin.json", mimetype="application/json")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=False)
