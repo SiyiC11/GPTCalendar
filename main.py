@@ -9,6 +9,7 @@ import os
 import datetime
 
 app = Flask(__name__)
+app.config["SESSION_TYPE"] = "filesystem"
 CORS(app)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "secret")
 
