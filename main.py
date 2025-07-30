@@ -102,6 +102,11 @@ def query_event():
         } for e in events_result.get("items", [])
     ]
     return jsonify(events), 200
-
+@app.route("/privacy")
+def privacy():
+    return """
+    <h2>GPT Calendar Privacy Policy</h2>
+    <p>This tool is for personal use only. No user data is stored or shared. All interactions are processed in real-time via OAuth2 with Google Calendar.</p>
+    """
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=False)
