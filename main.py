@@ -7,6 +7,10 @@ from google.auth.transport.requests import Request
 import os
 import json
 
+# 設定 OAuth 環境變數（對於生產環境）
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # 僅在開發環境使用
+os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'   # 允許範圍變更
+
 app = Flask(__name__)
 CORS(app)
 
