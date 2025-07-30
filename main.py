@@ -34,8 +34,15 @@ os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
 
 def load_credentials_from_env():
     """从环境变量加载持久化的凭证"""
-    refresh_token = os.environ.get("GOOGLE_REFRESH_TOKEN")
-    if not refresh_token:
+    refresh_token = os.environ.get("GOOGLE_REFRESH_TOKEN", "").strip()
+    client_id = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
+    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
+    
+    if not refresh_token or not client_id or not client_secret:
+        print(f"❌ 缺少必要的环境变量:")
+        print(f"   GOOGLE_REFRESH_TOKEN: {'✅' if refresh_token else '❌'}")
+        print(f"   GOOGLE_CLIENT_ID: {'✅' if client_id else '❌'}")
+        print(f"   GOOGLE_CLIENT_SECRET: {'✅' if client_secret else '❌'}")
         return None
     
     try:
@@ -43,8 +50,8 @@ def load_credentials_from_env():
             token=None,  # 会通过 refresh 获得
             refresh_token=refresh_token,
             token_uri="https://oauth2.googleapis.com/token",
-            client_id=os.environ.get("GOOGLE_CLIENT_ID"),
-            client_secret=os.environ.get("GOOGLE_CLIENT_SECRET"),
+            client_id=client_id,
+            client_secret=client_secret,
             scopes=SCOPES
         )
         
@@ -274,8 +281,17 @@ def home():
     """
 
 if __name__ == "__main__":
-    # 启动时检查环境变量配置
-    if os.environ.get("GOOGLE_REFRESH_TOKEN"):
+    # 启动时检查所有环境变量配置
+    client_id = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
+    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
+    refresh_token = os.environ.get("GOOGLE_REFRESH_TOKEN", "").strip()
+    
+    print("🔍 环境变量检查:")
+    print(f"   GOOGLE_CLIENT_ID: {'✅' if client_id else '❌'} ({len(client_id)} 字符)")
+    print(f"   GOOGLE_CLIENT_SECRET: {'✅' if client_secret else '❌'} ({len(client_secret)} 字符)")
+    print(f"   GOOGLE_REFRESH_TOKEN: {'✅' if refresh_token else '❌'} ({len(refresh_token)} 字符)")
+    
+    if refresh_token:
         print("🔑 检测到 GOOGLE_REFRESH_TOKEN 环境变量")
         service = get_service()
         if service:
