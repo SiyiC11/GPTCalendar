@@ -124,10 +124,25 @@ paths:
                   type: string
       responses:
         '200':
-          description: Events returned
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    summary:
+                      type: string
+                    start:
+                      type: object
+                    end:
+                      type: object
+                    eventId:
+                      type: string
 
 components:
-  schemas: {}   # ✅ 必須至少是一個空 object
+  schemas: {}
   securitySchemes:
     OAuth2:
       type: oauth2
