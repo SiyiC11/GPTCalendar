@@ -108,5 +108,14 @@ def privacy():
     <h2>GPT Calendar Privacy Policy</h2>
     <p>This tool is for personal use only. No user data is stored or shared. All interactions are processed in real-time via OAuth2 with Google Calendar.</p>
     """
+from flask import send_from_directory
+
+@app.route("/openapi.yaml")
+def openapi_spec():
+    return send_from_directory(".", "openapi.yaml", mimetype="text/yaml")
+
+@app.route("/.well-known/ai-plugin.json")
+def plugin_manifest():
+    return send_from_directory(".well-known", "ai-plugin.json", mimetype="application/json")
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=False)
