@@ -121,10 +121,23 @@ def oauth2callback():
     print("设置完成后，以后服务器重启都不需要重新登录了！")
     print("="*60 + "\n")
     
-    return jsonify({
-        "status": "login successful", 
-        "message": "请查看服务器日志，复制 GOOGLE_REFRESH_TOKEN 到环境变量中"
-    })
+    return f"""
+    <h2>✅ 登录成功！</h2>
+    <h3>🔑 请复制以下 refresh_token 到 Render 环境变量：</h3>
+    <div style="background:#f0f0f0; padding:15px; margin:10px 0; border-radius:5px;">
+        <strong>变量名:</strong> GOOGLE_REFRESH_TOKEN<br>
+        <strong>变量值:</strong> <span style="color:red; font-family:monospace;">{creds.refresh_token}</span>
+    </div>
+    <h3>📋 设置步骤：</h3>
+    <ol>
+        <li>去 Render Dashboard → Environment</li>
+        <li>点击 "Add Environment Variable"</li>
+        <li>Key: GOOGLE_REFRESH_TOKEN</li>
+        <li>Value: 复制上面红色的字符串</li>
+        <li>保存后重新部署</li>
+    </ol>
+    <p><a href="/">返回首页</a></p>
+    """
 
 # === CRUD endpoints ===
 
