@@ -2,7 +2,7 @@
   "schema_version": "v1",
   "name_for_model": "gptcalendar",
   "name_for_human": "GPT Calendar",
-  "description_for_model": "Manage Google Calendar events using natural language. You can create, update, query, and delete calendar events. Authentication is required.",
+  "description_for_model": "Manage Google Calendar events using natural language. You can create, update, query, and delete calendar events.",
   "description_for_human": "Create and manage Google Calendar events with natural language.",
   "auth": {
     "type": "oauth",
