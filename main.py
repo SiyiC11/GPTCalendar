@@ -22,7 +22,7 @@ REDIRECT_URI = "https://gptcalendar.onrender.com/oauth2callback"
 # Google OAuth 客戶端配置
 GOOGLE_CLIENT_CONFIG = {
     "web": {
-        "client_id": os.environ.get("GOOGLE_CLIENT_ID"),
+        "client_id": os.environ.get("GOOGLE_CLIENT_ID", "105133328364-jagi6t06v0p0hi7of9ltc4mdov9f8rtm.apps.googleusercontent.com"),
         "project_id": "chatgpt-reminder-466905",
         "auth_uri": "https://accounts.google.com/o/oauth2/auth",
         "token_uri": "https://oauth2.googleapis.com/token",
@@ -66,10 +66,16 @@ def debug():
     return jsonify({
         "client_id": GOOGLE_CLIENT_CONFIG["web"]["client_id"],
         "client_secret_exists": bool(GOOGLE_CLIENT_CONFIG["web"]["client_secret"]),
+        "client_secret_length": len(GOOGLE_CLIENT_CONFIG["web"]["client_secret"]) if GOOGLE_CLIENT_CONFIG["web"]["client_secret"] else 0,
         "redirect_uri": REDIRECT_URI,
         "flask_secret_exists": bool(app.secret_key),
         "session_exists": "credentials" in session,
-        "project_id": GOOGLE_CLIENT_CONFIG["web"]["project_id"]
+        "project_id": GOOGLE_CLIENT_CONFIG["web"]["project_id"],
+        "env_client_id": os.environ.get("GOOGLE_CLIENT_ID", "NOT_SET"),
+        "env_client_secret_exists": bool(os.environ.get("GOOGLE_CLIENT_SECRET")),
+        "env_client_secret_value": os.environ.get("GOOGLE_CLIENT_SECRET", "NOT_SET")[:10] + "..." if os.environ.get("GOOGLE_CLIENT_SECRET") else "NOT_SET",
+        "javascript_origins": GOOGLE_CLIENT_CONFIG["web"]["javascript_origins"],
+        "all_env_vars": {key: value[:10] + "..." if len(str(value)) > 10 else value for key, value in os.environ.items() if "GOOGLE" in key or "FLASK" in key}
     })
 
 
