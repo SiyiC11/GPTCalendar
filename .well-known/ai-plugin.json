@@ -3,15 +3,15 @@
   "name_for_model": "gptcalendar",
   "name_for_human": "GPT Calendar",
   "description_for_model": "Manage Google Calendar events using natural language. You can create, update, query, and delete calendar events.",
-  "description_for_human": "Create and manage Google Calendar events with natural language.",
+  "description_for_human": "Create and manage your Google Calendar events using natural language.",
   "auth": {
     "type": "oauth",
+    "authorization_type": "oauth2",
     "client_url": "https://gptcalendar.onrender.com/login",
     "authorization_url": "https://accounts.google.com/o/oauth2/auth",
     "authorization_content_type": "application/x-www-form-urlencoded",
     "token_url": "https://oauth2.googleapis.com/token",
-    "scope": "https://www.googleapis.com/auth/calendar.events",
-    "authorization_type": "oauth2"
+    "scope": "https://www.googleapis.com/auth/calendar.events"
   },
   "api": {
     "type": "openapi",
