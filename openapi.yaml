@@ -102,10 +102,10 @@ paths:
         '200':
           description: Event deleted
 
-  /query_events:
+  /query_event:
     post:
-      summary: Query events within a date range
-      operationId: queryEvents
+      summary: Query events by time range
+      operationId: queryEvent
       security:
         - OAuth2: [calendar]
       requestBody:
@@ -124,9 +124,9 @@ paths:
                   type: string
       responses:
         '200':
-          description: List of events
+          description: Events returned
+
 components:
-  schemas: {}
   securitySchemes:
     OAuth2:
       type: oauth2
@@ -135,4 +135,4 @@ components:
           authorizationUrl: https://accounts.google.com/o/oauth2/auth
           tokenUrl: https://oauth2.googleapis.com/token
           scopes:
-            calendar: Manage your Google Calendar
+            calendar: Access Google Calendar events
