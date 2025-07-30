@@ -139,120 +139,59 @@ def logout():
 def create_event():
     service = get_service()
     if not service:
-        return jsonify({"error": "Not logged in. Please authenticate first."}), 401
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"error": "No JSON data provided"}), 400
-        required_fields = ["summary", "start", "end"]
-        for field in required_fields:
-            if field not in data:
-                return jsonify({"error": f"Missing required field: {field}"}), 400
-        result = service.events().insert(calendarId="primary", body=data).execute()
-        return jsonify({
-            "status": "created",
-            "event_id": result.get("id"),
-            "summary": result.get("summary"),
-            "start": result.get("start"),
-            "end": result.get("end"),
-            "html_link": result.get("htmlLink")
-        })
-    except Exception as e:
-        return jsonify({"error": f"建立事件失敗: {str(e)}"}), 500
+        return jsonify({"error": "Not logged in"}), 401
+    data = request.get_json()
+    event = service.events().insert(calendarId="primary", body=data).execute()
+    return jsonify({"status": "created", "eventId": event.get("id")}), 200
 
 @app.route("/update_event", methods=["POST"])
 def update_event():
     service = get_service()
     if not service:
-        return jsonify({"error": "Not logged in. Please authenticate first."}), 401
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"error": "No JSON data provided"}), 400
-        event_id = data.get("eventId")
-        if not event_id:
-            return jsonify({"error": "Missing eventId"}), 400
-        event = service.events().get(calendarId="primary", eventId=event_id).execute()
-        updateable_fields = ["summary", "description", "location", "start", "end", "recurrence", "reminders"]
-        for field in updateable_fields:
-            if field in data:
-                event[field] = data[field]
-        updated = service.events().update(calendarId="primary", eventId=event_id, body=event).execute()
-        return jsonify({
-            "status": "updated",
-            "event_id": updated.get("id"),
-            "summary": updated.get("summary"),
-            "start": updated.get("start"),
-            "end": updated.get("end")
-        })
-    except Exception as e:
-        return jsonify({"error": f"更新事件失敗: {str(e)}"}), 500
+        return jsonify({"error": "Not logged in"}), 401
+    data = request.get_json()
+    event_id = data.pop("eventId", None)
+    if not event_id:
+        return jsonify({"error": "Missing eventId"}), 400
+    event = service.events().update(calendarId="primary", eventId=event_id, body=data).execute()
+    return jsonify({"status": "updated", "eventId": event.get("id")}), 200
 
 @app.route("/delete_event", methods=["POST"])
 def delete_event():
     service = get_service()
     if not service:
-        return jsonify({"error": "Not logged in. Please authenticate first."}), 401
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"error": "No JSON data provided"}), 400
-        event_id = data.get("eventId")
-        if not event_id:
-            return jsonify({"error": "Missing eventId"}), 400
-        service.events().delete(calendarId="primary", eventId=event_id).execute()
-        return jsonify({"status": "deleted", "event_id": event_id, "message": "Event successfully deleted"})
-    except Exception as e:
-        return jsonify({"error": f"刪除事件失敗: {str(e)}"}), 500
+        return jsonify({"error": "Not logged in"}), 401
+    data = request.get_json()
+    event_id = data.get("eventId")
+    if not event_id:
+        return jsonify({"error": "Missing eventId"}), 400
+    service.events().delete(calendarId="primary", eventId=event_id).execute()
+    return jsonify({"status": "deleted", "eventId": event_id}), 200
 
-@app.route("/query_events", methods=["POST"])
-def query_events():
+@app.route("/query_event", methods=["POST"])
+def query_event():
     service = get_service()
     if not service:
-        return jsonify({"error": "Not logged in. Please authenticate first."}), 401
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"error": "No JSON data provided"}), 400
-        start_date = data.get("start")
-        end_date = data.get("end")
-        timezone = data.get("timezone", "+10:00")
-        if not start_date or not end_date:
-            return jsonify({"error": "Missing start or end date"}), 400
-        time_min = f"{start_date}T00:00:00{timezone}"
-        time_max = f"{end_date}T23:59:59{timezone}"
-        events_result = service.events().list(
-            calendarId="primary",
-            timeMin=time_min,
-            timeMax=time_max,
-            singleEvents=True,
-            orderBy="startTime",
-            maxResults=100
-        ).execute()
-        events = events_result.get("items", [])
-        formatted_events = []
-        for event in events:
-            formatted_events.append({
-                "eventId": event.get("id"),
-                "summary": event.get("summary", "無標題"),
-                "description": event.get("description", ""),
-                "start": event.get("start"),
-                "end": event.get("end"),
-                "location": event.get("location", ""),
-                "status": event.get("status"),
-                "html_link": event.get("htmlLink")
-            })
-        return jsonify({
-            "events": formatted_events,
-            "total_count": len(formatted_events),
-            "query_range": {
-                "start": start_date,
-                "end": end_date,
-                "timezone": timezone
-            }
-        })
-    except Exception as e:
-        return jsonify({"error": f"查詢事件失敗: {str(e)}"}), 500
+        return jsonify({"error": "Not logged in"}), 401
+    data = request.get_json()
+    start = data.get("start") + "T00:00:00+10:00"
+    end = data.get("end") + "T23:59:59+10:00"
+    events_result = service.events().list(
+        calendarId="primary",
+        timeMin=start,
+        timeMax=end,
+        singleEvents=True,
+        orderBy="startTime"
+    ).execute()
+    events = [
+        {
+            "summary": e.get("summary"),
+            "start": e.get("start"),
+            "end": e.get("end"),
+            "eventId": e.get("id")
+        } for e in events_result.get("items", [])
+    ]
+    return jsonify(events), 200
 
 @app.route("/privacy")
 def privacy():
