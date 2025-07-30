@@ -2,8 +2,8 @@
   "schema_version": "v1",
   "name_for_model": "gptcalendar",
   "name_for_human": "GPT Calendar",
-  "description_for_model": "Manage Google Calendar events using natural language. You can create, update, query, and delete calendar events.",
-  "description_for_human": "Create and manage your Google Calendar events using natural language.",
+  "description_for_model": "Smart calendar assistant that extracts structured calendar event information from natural language in English, Traditional Chinese, or Simplified Chinese. Supports creating, updating, deleting, and querying Google Calendar events. IMPORTANT: All times use Australia/Sydney timezone unless specified otherwise. For CREATE/UPDATE, expects JSON with summary, start{dateTime, timeZone}, end{dateTime, timeZone}, and optional description, location, recurrence, reminders. For reminders, use 'useDefault':false and 'overrides' array with method('popup'/'email') and minutes. For QUERY, expects start/end dates in YYYY-MM-DD format. For DELETE, requires eventId. Always returns natural confirmation messages, never shows raw JSON to users.",
+  "description_for_human": "Create and manage your Google Calendar events using natural language. Supports English and Chinese commands with smart time parsing and reminder setup.",
   "auth": {
     "type": "oauth",
     "authorization_type": "oauth2",
@@ -18,7 +18,6 @@
     "url": "https://gptcalendar.onrender.com/openapi.yaml",
     "has_user_authentication": true
   },
-  "logo_url": "https://gptcalendar.onrender.com/static/logo.png",
   "contact_email": "cwp319203@gmail.com",
   "legal_info_url": "https://gptcalendar.onrender.com/privacy"
 }
