@@ -1,16 +1,24 @@
 {
   "schema_version": "v1",
+  "name_for_model": "gptcalendar",
   "name_for_human": "GPT Calendar",
-  "name_for_model": "gpt_calendar",
-  "description_for_human": "Create, update, delete and query Google Calendar events using natural language in English, 中文（繁體／簡體）.",
-  "description_for_model": "A plugin for managing calendar events using natural language. Supports creation, querying, updates, deletions, and custom reminders. All times default to Australia/Sydney timezone unless otherwise specified.",
+  "description_for_model": "Manage Google Calendar events using natural language. You can create, update, query, and delete calendar events. Authentication is required.",
+  "description_for_human": "Create and manage Google Calendar events with natural language.",
   "auth": {
-    "type": "none"
+    "type": "oauth",
+    "client_url": "https://gptcalendar.onrender.com/login",
+    "authorization_url": "https://accounts.google.com/o/oauth2/auth",
+    "authorization_content_type": "application/x-www-form-urlencoded",
+    "token_url": "https://oauth2.googleapis.com/token",
+    "scope": "https://www.googleapis.com/auth/calendar.events",
+    "authorization_type": "oauth2"
   },
   "api": {
     "type": "openapi",
-    "url": "https://gptcalendar.onrender.com/openapi.yaml"
+    "url": "https://gptcalendar.onrender.com/openapi.yaml",
+    "has_user_authentication": true
   },
-  "contact_email": "cwp319203@gmail.com",
-  "legal_info_url": "https://gptcalendar.onrender.com/legal"
+  "logo_url": "https://gptcalendar.onrender.com/static/logo.png",
+  "contact_email": "your@email.com",
+  "legal_info_url": "https://gptcalendar.onrender.com/privacy"
 }
