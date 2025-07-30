@@ -125,7 +125,8 @@ paths:
       responses:
         '200':
           description: List of events
-
+components:
+  schemas: {}
 components:
   securitySchemes:
     OAuth2:
