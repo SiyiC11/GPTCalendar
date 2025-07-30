@@ -22,7 +22,7 @@ REDIRECT_URI = "https://gptcalendar.onrender.com/oauth2callback"
 # Google OAuth 客戶端配置
 GOOGLE_CLIENT_CONFIG = {
     "web": {
-        "client_id": os.environ.get("GOOGLE_CLIENT_ID", "105133328364-jagi6t06v0p0hi7of9ltc4mdov9f8rtm.apps.googleusercontent.com"),
+        "client_id": os.environ.get("GOOGLE_CLIENT_ID"),
         "project_id": "chatgpt-reminder-466905",
         "auth_uri": "https://accounts.google.com/o/oauth2/auth",
         "token_uri": "https://oauth2.googleapis.com/token",
@@ -63,19 +63,21 @@ def index():
 @app.route("/debug")
 def debug():
     """調試端點 - 檢查環境變數和配置"""
+    client_id_raw = os.environ.get("GOOGLE_CLIENT_ID", "NOT_SET")
+    client_secret_raw = os.environ.get("GOOGLE_CLIENT_SECRET", "NOT_SET")
+    
     return jsonify({
         "client_id": GOOGLE_CLIENT_CONFIG["web"]["client_id"],
+        "client_id_raw": repr(client_id_raw),  # 顯示原始字符，包括 \n
+        "client_id_length": len(client_id_raw) if client_id_raw != "NOT_SET" else 0,
         "client_secret_exists": bool(GOOGLE_CLIENT_CONFIG["web"]["client_secret"]),
-        "client_secret_length": len(GOOGLE_CLIENT_CONFIG["web"]["client_secret"]) if GOOGLE_CLIENT_CONFIG["web"]["client_secret"] else 0,
+        "client_secret_raw": repr(client_secret_raw[:15] + "...") if client_secret_raw != "NOT_SET" else "NOT_SET",
+        "client_secret_length": len(client_secret_raw) if client_secret_raw != "NOT_SET" else 0,
         "redirect_uri": REDIRECT_URI,
         "flask_secret_exists": bool(app.secret_key),
         "session_exists": "credentials" in session,
         "project_id": GOOGLE_CLIENT_CONFIG["web"]["project_id"],
-        "env_client_id": os.environ.get("GOOGLE_CLIENT_ID", "NOT_SET"),
-        "env_client_secret_exists": bool(os.environ.get("GOOGLE_CLIENT_SECRET")),
-        "env_client_secret_value": os.environ.get("GOOGLE_CLIENT_SECRET", "NOT_SET")[:10] + "..." if os.environ.get("GOOGLE_CLIENT_SECRET") else "NOT_SET",
-        "javascript_origins": GOOGLE_CLIENT_CONFIG["web"]["javascript_origins"],
-        "all_env_vars": {key: value[:10] + "..." if len(str(value)) > 10 else value for key, value in os.environ.items() if "GOOGLE" in key or "FLASK" in key}
+        "javascript_origins": GOOGLE_CLIENT_CONFIG["web"]["javascript_origins"]
     })
 
 
@@ -319,14 +321,38 @@ def query_events():
         return jsonify({"error": f"查詢事件失敗: {str(e)}"}), 500
 
 
-@app.route("/health")
-def health():
-    """健康檢查端點"""
-    return jsonify({
-        "status": "healthy",
-        "service": "GPTCalendar API",
-        "authenticated": "credentials" in session
-    })
+@app.route("/privacy")
+def privacy():
+    """隱私政策頁面"""
+    return """
+    <html>
+    <head><title>Privacy Policy - GPTCalendar</title></head>
+    <body>
+        <h1>Privacy Policy</h1>
+        <p>This application accesses your Google Calendar to manage events on your behalf.</p>
+        <p>We do not store or share your personal information.</p>
+        <p>All data is processed securely and only used for the intended calendar management purposes.</p>
+        <p><a href="/">← Back to Home</a></p>
+    </body>
+    </html>
+    """
+
+
+@app.route("/terms")
+def terms():
+    """服務條款頁面"""
+    return """
+    <html>
+    <head><title>Terms of Service - GPTCalendar</title></head>
+    <body>
+        <h1>Terms of Service</h1>
+        <p>By using this application, you agree to allow it to access your Google Calendar.</p>
+        <p>This is a demo application for educational purposes.</p>
+        <p>Use at your own risk.</p>
+        <p><a href="/">← Back to Home</a></p>
+    </body>
+    </html>
+    """
 
 
 # 錯誤處理
