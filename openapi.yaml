@@ -127,7 +127,6 @@ paths:
           description: List of events
 components:
   schemas: {}
-components:
   securitySchemes:
     OAuth2:
       type: oauth2
