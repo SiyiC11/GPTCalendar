@@ -5,7 +5,6 @@
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![OpenAI](https://img.shields.io/badge/OpenAI-GPT-412991.svg)](https://openai.com/)
 [![Google Calendar](https://img.shields.io/badge/Google-Calendar_API-4285F4.svg)](https://developers.google.com/calendar)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ## 📋 Overview
 
@@ -182,7 +181,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For questions, suggestions, or collaboration opportunities, please reach out through:
 - GitHub Issues: [Create an issue](https://github.com/SiyiC11/GPTCalendar/issues)
-- Email: [Your professional email]
+- Email: siyic46@gmail.com
 
 ---
 
