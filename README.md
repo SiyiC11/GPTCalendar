@@ -161,15 +161,11 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 - [ ] Smart scheduling suggestions based on calendar patterns
 - [ ] Group meeting time finder
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 👨‍💻 Author
 
-**Siyi Chen**
+**Stephen Chen**
 - GitHub: [@SiyiC11](https://github.com/SiyiC11)
-- LinkedIn: [Add your LinkedIn URL]
+- LinkedIn: www.linkedin.com/in/stephen-chan-6148b0326
 
 ## 🙏 Acknowledgments
 
